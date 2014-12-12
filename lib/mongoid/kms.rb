@@ -38,24 +38,24 @@ module Mongoid
     end
 
     module ClassMethods
-      def encrypt_field(field_name, value)
+      def encrypt_field(object, field_name, value)
         Mongoid::Kms.kms.encrypt({
           key_id: Mongoid::Kms.key,
           plaintext: value,
-          encryption_context: kms_context(field_name)
+          encryption_context: kms_context(object, field_name)
         })[:ciphertext_blob].force_encoding('UTF-8')
       end
 
-      def decrypt_field(field_name, data)
+      def decrypt_field(object, field_name, data)
         Mongoid::Kms.kms.decrypt({
           ciphertext_blob: data,
-          encryption_context: kms_context(field_name)
+          encryption_context: kms_context(object, field_name)
         })[:plaintext]
       end
 
-      def kms_context(field_name)
+      def kms_context(object, field_name)
         c = @kms_field_map[field_name.to_s][:context]
-        c = c.call(self) if c.is_a?(Proc)
+        c = c.call(object) if c.is_a?(Proc)
         c
       end
 
@@ -73,7 +73,7 @@ module Mongoid
 
         define_method(field_name) do
           instance_variable_get("@#{field_name}") || begin
-          v = self.class.decrypt_field(field_name, send("kms_secure_#{field_name}"))
+          v = self.class.decrypt_field(self, field_name, send("kms_secure_#{field_name}"))
             instance_variable_set("@#{field_name}", v)
             v
           end
@@ -81,7 +81,7 @@ module Mongoid
 
         define_method("#{field_name}=") do |value|
           instance_variable_set("@#{field_name}", value)
-          self.send("#{encrypted_field_name}=", self.class.encrypt_field(field_name, value))
+          self.send("#{encrypted_field_name}=", self.class.encrypt_field(self, field_name, value))
         end
       end
     end
