@@ -29,6 +29,14 @@ module Mongoid
       configuration[:key]
     end
 
+    def self.bson_class
+      if defined? Moped::BSON
+        Moped::BSON
+      elsif defined? BSON
+        BSON
+      end
+    end
+
     module ClassMethods
       def encrypt_field(field_name, value)
         Mongoid::Kms.kms.encrypt({
@@ -61,7 +69,7 @@ module Mongoid
         @ksm_field_map ||= {}
         @ksm_field_map[field_name.to_s] = {context: args.delete(:context), type: args.delete(:type)}
 
-        field encrypted_field_name, args.merge(type: BSON::Binary)
+        field encrypted_field_name, args.merge(type: Mongoid::Kms.bson_class::Binary)
 
         define_method(field_name) do
           instance_variable_get("@#{field_name}") || begin
