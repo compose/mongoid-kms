@@ -15,7 +15,6 @@ describe Mongoid::Kms do
     o.save!
 
     o = MyClass.find(o.id)
-    byebug
     expect(o.secure).to eq("batman")
     expect(o.unsecure).to eq("robin")
   end
