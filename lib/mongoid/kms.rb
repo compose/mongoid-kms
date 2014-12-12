@@ -54,20 +54,20 @@ module Mongoid
       end
 
       def kms_context(field_name)
-        c = @ksm_field_map[field_name.to_s][:context]
+        c = @kms_field_map[field_name.to_s][:context]
         c = c.call(self) if c.is_a?(Proc)
         c
       end
 
-      def ksm_type(field_name)
-        @ksm_field_map[field_name.to_s][:type]
+      def kms_type(field_name)
+        @kms_field_map[field_name.to_s][:type]
       end
 
       def secure_field(field_name, args)
         encrypted_field_name = "kms_secure_#{field_name}"
 
-        @ksm_field_map ||= {}
-        @ksm_field_map[field_name.to_s] = {context: args.delete(:context), type: args.delete(:type)}
+        @kms_field_map ||= {}
+        @kms_field_map[field_name.to_s] = {context: args.delete(:context), type: args.delete(:type)}
 
         field encrypted_field_name, args.merge(type: Mongoid::Kms.bson_class::Binary)
 
