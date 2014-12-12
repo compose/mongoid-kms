@@ -1,6 +1,6 @@
 # Mongoid::Kms
 
-TODO: Write a gem description
+Easily encrypt your datas using AWS's KSM.
 
 ## Installation
 
@@ -20,12 +20,33 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Environmental variables to include:
 
-## Contributing
+```
+AWS_ACCESS_KEY_ID # an IAM access key
+AWS_SECRET_ACCESS_KEY # an IAM access secret
+```
 
-1. Fork it ( https://github.com/[my-github-username]/mongoid-kms/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+Somewhere before your run your application, you will need to add this:
+
+```ruby
+Mongoid::Kms.configure({region: "us-east-1", key: "your aws kms key id i.e <02342-234-232-234-234>"})
+```
+
+When defining yoru classes, `include Mongoid::Kms`, and use the
+`secure_field` to define your fields with a required `:context`.
+Context must return a hash.
+
+```ruby
+class MyClass
+  include Mongoid::Document
+  include Mongoid::Kms
+
+  secure_field :secure, type: String, context: lambda { |d| {name: d.name} }
+  field :unsecure
+
+  def name
+    @name ||= "me-#{Time.now.to_i}"
+  end
+end
+```
