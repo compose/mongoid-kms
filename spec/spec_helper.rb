@@ -9,12 +9,17 @@ class MyClass
   include Mongoid::Document
   include Mongoid::Kms
 
-  secure_field :secure, type: String, context: lambda { |d| {name: d.name} }
+  secure_field :secure, type: String, context: lambda { |d| {name: d.unsecure} }
   field :unsecure
-
-  def name
-    @name ||= "me-#{Time.now.to_i}"
-  end
 end
+
+class OtherClass
+  include Mongoid::Document
+  include Mongoid::Kms
+
+  secure_field :super_secure, type: String, context: lambda { |d| {some_name: d.unsecure} }
+  field :unsecure
+end
+
 
 Mongoid::Kms.configure({region: "us-east-1", key: ENV['AWS_KMS_KEY_ID']})

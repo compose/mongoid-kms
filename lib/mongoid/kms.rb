@@ -44,6 +44,8 @@ module Mongoid
           plaintext: value,
           encryption_context: kms_context(object, field_name)
         })[:ciphertext_blob].force_encoding('UTF-8')
+      rescue ArgumentError
+        raise "Error using KMS context.  If you use an object's field for context, set your encrypted fields explicitly: myobject.#{field_name} = #{value.inspect}"
       end
 
       def decrypt_field(object, field_name, data)
@@ -75,7 +77,7 @@ module Mongoid
           instance_variable_get("@#{field_name}") || begin
             raw = send("kms_secure_#{field_name}")
 
-            if raw.blank?
+            if raw.nil?
               raw
             else
               v = self.class.decrypt_field(self, field_name, raw)
@@ -88,7 +90,7 @@ module Mongoid
         define_method("#{field_name}=") do |value|
           instance_variable_set("@#{field_name}", value)
 
-          if value.blank?
+          if value.nil?
             self.send("#{encrypted_field_name}=", nil)
           else
             self.send("#{encrypted_field_name}=", self.class.encrypt_field(self, field_name, value))
