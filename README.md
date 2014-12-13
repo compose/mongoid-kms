@@ -30,6 +30,8 @@ AWS_SECRET_ACCESS_KEY # an IAM access secret
 Somewhere before your run your application, you will need to add this:
 
 ```ruby
+require 'mongoid/kms'
+
 Mongoid::Kms.configure({region: "us-east-1", key: "your aws kms key id i.e <02342-234-232-234-234>"})
 ```
 
@@ -50,3 +52,8 @@ class MyClass
   end
 end
 ```
+
+## Development and Testing
+
+In development or testing, just require `mongoid/kms/mock` and the
+package will use Rot13 for encryption.

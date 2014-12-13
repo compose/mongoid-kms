@@ -73,7 +73,7 @@ module Mongoid
 
         define_method(field_name) do
           instance_variable_get("@#{field_name}") || begin
-          v = self.class.decrypt_field(self, field_name, send("kms_secure_#{field_name}"))
+            v = self.class.decrypt_field(self, field_name, send("kms_secure_#{field_name}"))
             instance_variable_set("@#{field_name}", v)
             v
           end
