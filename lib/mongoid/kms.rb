@@ -73,15 +73,26 @@ module Mongoid
 
         define_method(field_name) do
           instance_variable_get("@#{field_name}") || begin
-            v = self.class.decrypt_field(self, field_name, send("kms_secure_#{field_name}"))
-            instance_variable_set("@#{field_name}", v)
-            v
+            raw = send("kms_secure_#{field_name}")
+
+            if raw.blank?
+              raw
+            else
+              v = self.class.decrypt_field(self, field_name, raw)
+              instance_variable_set("@#{field_name}", v)
+              v
+            end
           end
         end
 
         define_method("#{field_name}=") do |value|
           instance_variable_set("@#{field_name}", value)
-          self.send("#{encrypted_field_name}=", self.class.encrypt_field(self, field_name, value))
+
+          if value.blank?
+            self.send("#{encrypted_field_name}=", nil)
+          else
+            self.send("#{encrypted_field_name}=", self.class.encrypt_field(self, field_name, value))
+          end
         end
       end
     end
