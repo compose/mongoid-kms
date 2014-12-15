@@ -74,7 +74,7 @@ module Mongoid
     end
 
     def kms_context_value_changed?(field_name)
-      self.class.kms_context_array(self, field_name).find { |f| self.respond_to?(f) && self.send("#{f}_changed?") }
+      self.class.kms_context_array(self, field_name).find { |f| self.respond_to?(f) && self.respond_to?("#{f}_changed?") && self.send("#{f}_changed?") }
     end
 
     # Class methods
