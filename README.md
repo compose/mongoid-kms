@@ -35,21 +35,23 @@ require 'mongoid/kms'
 Mongoid::Kms.configure({region: "us-east-1", key: "your aws kms key id i.e <02342-234-232-234-234>"})
 ```
 
-When defining yoru classes, `include Mongoid::Kms`, and use the
-`secure_field` to define your fields with a required `:context`.
-Context must return a hash.
+When defining your classes, `include Mongoid::Kms`, and use the
+`secure_field` to define your fields.  The `:context` argument is an
+optional list of method names or strings used for encrypting your
+values.
+
+The context argument is an important way to ensure simply having the
+authentication keys and data field does not enable decryption.  When
+using context, it also requires an attacker to know the decryption
+context.
 
 ```ruby
 class MyClass
   include Mongoid::Document
   include Mongoid::Kms
 
-  secure_field :secure, type: String, context: lambda { |d| {name: d.name} }
-  field :unsecure
-
-  def name
-    @name ||= "me-#{Time.now.to_i}"
-  end
+  secure_field :my_secure_field, type: String, context: [:unsecure_field, "some-string"]
+  field :unsecure_field
 end
 ```
 
