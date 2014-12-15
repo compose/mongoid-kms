@@ -48,4 +48,8 @@ describe Mongoid::Kms do
     expect(o.secure).to eq("bla")
   end
 
+  it "fails to configure without a region" do
+    expect{Mongoid::Kms.configure({region: "", key: ""})}.to raise_error(Mongoid::Kms::Errors::ConfigurationError, "Region and KMS id key are required.")
+  end
+
 end

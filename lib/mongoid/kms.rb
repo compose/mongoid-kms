@@ -20,7 +20,11 @@ module Mongoid
     # Module methods
     class << self
       def configure(args)
-        @configuration = args
+        if args[:region] && args[:region] != "" && args[:key] && args[:key] != ""
+          @configuration = args
+        else
+          raise Errors::ConfigurationError.new("Region and KMS id key are required.")
+        end
       end
 
       def configuration
@@ -163,6 +167,10 @@ module Mongoid
           instance_variable_set("@#{field_name}", value)
         end
       end
+    end
+
+    module Errors
+      class ConfigurationError < RuntimeError; end
     end
   end
 end
