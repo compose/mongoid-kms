@@ -17,8 +17,9 @@ class OtherClass
   include Mongoid::Document
   include Mongoid::Kms
 
-  secure_field :super_secure, type: String, context: [:unsecure, "deployment"]
+  secure_field :super_secure, type: String, context: [:unsecure, "deployment", :timestamp]
   field :unsecure
+  field :timestamp, type: Time
 end
 
 class ClassWithoutContext

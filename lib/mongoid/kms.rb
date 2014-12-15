@@ -103,7 +103,8 @@ module Mongoid
       def kms_context(object, field_name)
         kms_context_array(object, field_name).inject({}) do |hash, key|
           if object.respond_to?(key)
-            hash[key] = object.send(key)
+            value = object.send(key).to_s
+            hash[key] = value if !value.nil? && value != ""
           else
             hash[key] = key
           end
@@ -115,9 +116,9 @@ module Mongoid
       def kms_context_was(object, field_name)
         kms_context_array(object, field_name).inject({}) do |hash, key|
           if object.respond_to?("#{key}_was") && object.send("#{key}_changed?")
-            hash[key] = object.send("#{key}_was")
+            hash[key] = object.send("#{key}_was").to_s
           elsif object.respond_to?(key)
-            hash[key] = object.send(key)
+            hash[key] = object.send(key).to_s
           else
             hash[key] = key
           end
