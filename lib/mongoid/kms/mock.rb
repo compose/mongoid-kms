@@ -8,7 +8,7 @@ module Mongoid
         Rot13.rotate(value, 13)
       end
 
-      def decrypt_field(object, field_name, data)
+      def decrypt_field(object, field_name, data, encryption_context = nil)
         Rot13.rotate(data, -13)
       end
     end
