@@ -9,7 +9,7 @@ class MyClass
   include Mongoid::Document
   include Mongoid::Kms
 
-  secure_field :secure, type: String, context: lambda { |d| {name: d.unsecure} }
+  secure_field :secure, type: String, context: [:unsecure]
   field :unsecure
 end
 
@@ -17,9 +17,16 @@ class OtherClass
   include Mongoid::Document
   include Mongoid::Kms
 
-  secure_field :super_secure, type: String, context: lambda { |d| {some_name: d.unsecure} }
+  secure_field :super_secure, type: String, context: [:unsecure, "deployment"]
   field :unsecure
 end
 
+class ClassWithoutContext
+  include Mongoid::Document
+  include Mongoid::Kms
+
+  secure_field :secure, type: String
+  field :unsecure
+end
 
 Mongoid::Kms.configure({region: "us-east-1", key: ENV['AWS_KMS_KEY_ID']})
