@@ -56,8 +56,6 @@ describe Mongoid::Kms do
     o = ExtendedClass.new(super_secure: "batman", unsecure: "robin", timestamp: Time.now, additional_secure: "wha!")
     o.save!
 
-    byebug
-
     o = ExtendedClass.find(o.id)
     expect(o.additional_secure).to eq("wha!")
   end
