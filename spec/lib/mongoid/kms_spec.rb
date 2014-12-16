@@ -52,4 +52,14 @@ describe Mongoid::Kms do
     expect{Mongoid::Kms.configure({region: "", key: ""})}.to raise_error(Mongoid::Kms::Errors::ConfigurationError, "Region and KMS id key are required.")
   end
 
+  it "works with extended classes" do
+    o = ExtendedClass.new(super_secure: "batman", unsecure: "robin", timestamp: Time.now, additional_secure: "wha!")
+    o.save!
+
+    byebug
+
+    o = ExtendedClass.find(o.id)
+    expect(o.additional_secure).to eq("wha!")
+  end
+
 end

@@ -30,4 +30,8 @@ class ClassWithoutContext
   field :unsecure
 end
 
+class ExtendedClass < OtherClass
+  secure_field :additional_secure, type: String, context: [:unsecure, :timestamp]
+end
+
 Mongoid::Kms.configure({region: "us-east-1", key: ENV['AWS_KMS_KEY_ID']})

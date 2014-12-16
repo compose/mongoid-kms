@@ -7,7 +7,8 @@ module Mongoid
     extend ActiveSupport::Concern
 
     included do
-      @kms_field_map ||= {}
+      class_attribute :kms_field_map
+      self.kms_field_map ||= {}
 
       unless self.ancestors.include?(ActiveModel::Dirty)
         include ActiveModel::Dirty
@@ -79,9 +80,46 @@ module Mongoid
 
     # Class methods
     module ClassMethods
-      def kms_field_map
-        @kms_field_map
+      def inherited(child)
+        child.kms_field_map = self.kms_field_map.clone
+
+        child.kms_field_map.each do |field_name, args|
+          child.add_secure_field(field_name, args)
+        end
       end
+
+      def add_secure_field(field_name, args)
+        encrypted_field_name = get_encrypted_field_name(field_name)
+
+        define_attribute_methods field_name.to_sym
+        before_save :set_kms_values
+
+        kms_field_map[field_name.to_s] = {context: args.delete(:context), type: args[:type]}
+
+        field encrypted_field_name, type: Mongoid::Kms.bson_class::Binary
+
+        self.class_eval do
+          define_method(field_name) do
+            instance_variable_get("@#{field_name}") || begin
+              raw = send("kms_secure_#{field_name}")
+
+              if raw.nil?
+                raw
+              else
+                v = self.class.decrypt_field(self, field_name, raw)
+                instance_variable_set("@#{field_name}", v)
+                v
+              end
+            end
+          end
+
+          define_method("#{field_name}=") do |value|
+            self.send("#{field_name}_will_change!")
+            instance_variable_set("@#{field_name}", value)
+          end
+        end
+      end
+
 
       def encrypt_field(object, field_name, value)
         Mongoid::Kms.kms.encrypt({
@@ -128,11 +166,11 @@ module Mongoid
       end
 
       def kms_context_array(object, field_name)
-        @kms_field_map[field_name.to_s][:context] || []
+        kms_field_map[field_name.to_s][:context] || []
       end
 
       def kms_type(field_name)
-        @kms_field_map[field_name.to_s][:type]
+        kms_field_map[field_name.to_s][:type]
       end
 
       def get_encrypted_field_name(field_name)
@@ -140,33 +178,7 @@ module Mongoid
       end
 
       def secure_field(field_name, args)
-        encrypted_field_name = get_encrypted_field_name(field_name)
-
-        @kms_field_map[field_name.to_s] = {context: args.delete(:context), type: args.delete(:type)}
-
-        field encrypted_field_name, args.merge(type: Mongoid::Kms.bson_class::Binary)
-
-        define_attribute_methods field_name.to_sym
-        before_save :set_kms_values
-
-        define_method(field_name) do
-          instance_variable_get("@#{field_name}") || begin
-            raw = send("kms_secure_#{field_name}")
-
-            if raw.nil?
-              raw
-            else
-              v = self.class.decrypt_field(self, field_name, raw)
-              instance_variable_set("@#{field_name}", v)
-              v
-            end
-          end
-        end
-
-        define_method("#{field_name}=") do |value|
-          self.send("#{field_name}_will_change!")
-          instance_variable_set("@#{field_name}", value)
-        end
+        add_secure_field(field_name, args)
       end
     end
 
