@@ -52,7 +52,7 @@ module Mongoid
     # Instance methods
     def set_kms_values
       self.class.kms_field_map.each do |field_name, settings|
-        if self.send("#{field_name}_changed?") || kms_context_value_changed?(field_name)
+        if self.new_record? || self.send("#{field_name}_changed?") || kms_context_value_changed?(field_name)
           encrypted_field_name = self.class.get_encrypted_field_name(field_name)
 
           if instance_variable_get("@#{field_name}").nil? && kms_context_value_changed?(field_name)
