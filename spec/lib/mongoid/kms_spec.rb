@@ -58,6 +58,21 @@ describe Mongoid::Kms do
 
     o = ExtendedClass.find(o.id)
     expect(o.additional_secure).to eq("wha!")
+    o.test_hash_crash
+  end
+
+  it "works fine with Mongoid + Hash" do
+    class TestHashClass
+      include Mongoid::Document
+      include Mongoid::Kms
+
+      secure_field "other", type: String, context: ["hammertime"]
+      field :bla, type: Hash
+    end
+
+    o = TestHashClass.create!(bla: {name: "samson"})
+    o = TestHashClass.find(o.id)
+    o.bla
   end
 
 end

@@ -9,10 +9,6 @@ module Mongoid
     included do
       class_attribute :kms_field_map
       self.kms_field_map ||= {}
-
-      unless self.ancestors.include?(ActiveModel::Dirty)
-        include ActiveModel::Dirty
-      end
     end
 
     @configuration = {}
@@ -144,7 +140,7 @@ module Mongoid
       def secure_field(field_name, args)
         encrypted_field_name = get_encrypted_field_name(field_name)
 
-        define_attribute_methods field_name.to_sym
+        create_dirty_methods field_name, field_name
         before_save :set_kms_values
 
         kms_field_map[field_name.to_s] = {context: args.delete(:context), type: args[:type]}

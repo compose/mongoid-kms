@@ -27,11 +27,12 @@ class ClassWithoutContext
   include Mongoid::Kms
 
   secure_field :secure, type: String
-  field :unsecure
+  field :unsecure, type: Hash
 end
 
 class ExtendedClass < OtherClass
   secure_field :additional_secure, type: String, context: [:unsecure, :timestamp]
+  field :test_hash_crash, type: Hash, default: {}
 end
 
 Mongoid::Kms.configure({region: "us-east-1", key: ENV['AWS_KMS_KEY_ID']})
