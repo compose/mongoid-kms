@@ -52,7 +52,9 @@ module Mongoid
     # Instance methods
     def set_kms_values
       self.class.kms_field_map.each do |field_name, settings|
-        if self.new_record? || self.send("#{field_name}_changed?") || kms_context_value_changed?(field_name)
+        if self.new_record? || # always run new records through this
+            changed_attributes.keys.include?(field_name.to_sym) || # this is a hack to get around Mongoid's weakass dirty hack
+            kms_context_value_changed?(field_name) # checks if any of the context fields have changed
           encrypted_field_name = self.class.get_encrypted_field_name(field_name)
 
           if instance_variable_get("@#{field_name}").nil? && kms_context_value_changed?(field_name)

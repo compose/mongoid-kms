@@ -40,6 +40,18 @@ describe Mongoid::Kms do
     expect(o.secure).to eq("other")
   end
 
+  it "updates properly" do
+    o = MyClass.new(unsecure: "robin", secure: "other")
+    o.save!
+
+    o = MyClass.find(o.id)
+    o.secure = 'salted-other'
+    o.save!
+
+    o = MyClass.find(o.id)
+    expect(o.secure).to eq("salted-other")
+  end
+
   it "handles a class without context" do
     o = MyClass.new(secure: "bla", unsecure: "blatoo")
     o.save!
