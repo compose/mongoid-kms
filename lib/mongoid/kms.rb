@@ -58,7 +58,9 @@ module Mongoid
           encrypted_field_name = self.class.get_encrypted_field_name(field_name)
 
           if instance_variable_get("@#{field_name}").nil? && kms_context_value_changed?(field_name)
-            value = self.class.decrypt_field(self, field_name, self.send(encrypted_field_name), self.class.kms_context_was(self, field_name))
+            raw = self.send(encrypted_field_name)
+            raw = raw.data if raw.is_a?(Mongoid::Kms.bson_class::Binary)
+            value = self.class.decrypt_field(self, field_name, raw, self.class.kms_context_was(self, field_name))
           else
             value = send("#{field_name}")
           end
@@ -66,7 +68,7 @@ module Mongoid
           if value.nil?
             self.send("#{encrypted_field_name}=", nil)
           else
-            self.send("#{encrypted_field_name}=", self.class.encrypt_field(self, field_name, value))
+            self.send("#{encrypted_field_name}=", Mongoid::Kms.bson_class::Binary.new(self.class.encrypt_field(self, field_name, value)))
           end
         end
       end
@@ -88,7 +90,7 @@ module Mongoid
           key_id: Mongoid::Kms.key,
           plaintext: value,
           encryption_context: kms_context(object, field_name)
-        })[:ciphertext_blob].force_encoding('UTF-8')
+        })[:ciphertext_blob]
       end
 
       def decrypt_field(object, field_name, data, encryption_context = nil)
@@ -152,6 +154,7 @@ module Mongoid
         define_method(field_name) do
           instance_variable_get("@#{field_name}") || begin
             raw = send("kms_secure_#{field_name}")
+            raw = raw.data if raw.is_a?(Mongoid::Kms.bson_class::Binary)
 
             if raw.nil?
               raw
