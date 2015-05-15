@@ -87,4 +87,33 @@ describe Mongoid::Kms do
     o.bla
   end
 
+  it "works with embedded documents" do
+    class ParentClass
+      include Mongoid::Document
+
+      embeds_one :child_class, class_name: "ChildClass"
+
+      field :unsecure, type: String
+    end
+
+    class ChildClass
+      include Mongoid::Document
+      include Mongoid::Kms
+
+      embedded_in :parent_class
+
+      secure_field :secure, type: String
+      field :unsecure, type: String
+    end
+
+    o = ParentClass.create!(unsecure: "wonder woman")
+    o.child_class = ChildClass.new(secure: "invisible ship", unsecure: "a whip")
+    o.save!
+
+    o.reload
+    expect(o.unsecure).to eq("wonder woman")
+    expect(o.child_class.secure).to eq("invisible ship")
+    expect(o.child_class.unsecure).to eq("a whip")
+  end
+
 end

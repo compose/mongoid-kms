@@ -47,6 +47,14 @@ module Mongoid
           BSON
         end
       end
+
+      def binary_factory(data)
+        if defined? Moped::BSON
+          Moped::BSON::Binary.new(:generic, data)
+        elsif defined? BSON
+          BSON::Binary.new(data)
+        end
+      end
     end
 
     # Instance methods
@@ -68,7 +76,7 @@ module Mongoid
           if value.nil?
             self.send("#{encrypted_field_name}=", nil)
           else
-            self.send("#{encrypted_field_name}=", Mongoid::Kms.bson_class::Binary.new(self.class.encrypt_field(self, field_name, value)))
+            self.send("#{encrypted_field_name}=", Mongoid::Kms.binary_factory(self.class.encrypt_field(self, field_name, value)))
           end
         end
       end
