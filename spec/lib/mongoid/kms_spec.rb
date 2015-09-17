@@ -19,6 +19,61 @@ describe Mongoid::Kms do
     expect(o.unsecure).to eq("robin")
   end
 
+  it "ingores nil on create" do
+    o = MyClass.new(unsecure: "robin", secure: nil)
+    o.save!
+
+    o = MyClass.find(o.id)
+    expect(o.secure).to be_nil
+    expect(o.unsecure).to eq("robin")
+  end
+
+  it "ingores empty string on create" do
+    o = MyClass.new(unsecure: "robin", secure: "")
+    o.save!
+
+    o = MyClass.find(o.id)
+    expect(o.secure).to be_nil
+    expect(o.unsecure).to eq("robin")
+  end
+
+  it "sets nil on update" do
+    o = MyClass.new(unsecure: "robin", secure: "old-secure-value")
+    o.save!
+
+    o.update_attributes!(secure: nil)
+
+    o = MyClass.find(o.id)
+    expect(o.secure).to be_nil
+    expect(o.unsecure).to eq("robin")
+  end
+
+  it "sets empty string on update" do
+    o = MyClass.new(unsecure: "robin", secure: "old-secure-value")
+    o.save!
+
+    o.secure = ""
+    o.save!
+
+    o = MyClass.find(o.id)
+    expect(o.secure).to be_nil
+    expect(o.unsecure).to eq("robin")
+  end
+
+  it "udpates nil values properly" do
+    o = MyClass.new(unsecure: "robin", secure: nil)
+    o.save!
+
+    o.secure = "batman"
+    o.save!
+
+    o = MyClass.find(o.id)
+    expect(o.secure).to eq("batman")
+    expect(o.unsecure).to eq("robin")
+  end
+
+
+
   it "encrypts the other fields" do
     o = OtherClass.new(unsecure: "pengiun", super_secure: "joker")
     o.save!

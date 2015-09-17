@@ -65,7 +65,7 @@ module Mongoid
             kms_context_value_changed?(field_name) # checks if any of the context fields have changed
           encrypted_field_name = self.class.get_encrypted_field_name(field_name)
 
-          if instance_variable_get("@#{field_name}").nil? && kms_context_value_changed?(field_name)
+          if !instance_variable_defined?("@#{field_name}") && kms_context_value_changed?(field_name)
             raw = self.send(encrypted_field_name)
             raw = raw.data if raw.is_a?(Mongoid::Kms.bson_class::Binary)
             value = self.class.decrypt_field(self, field_name, raw, self.class.kms_context_was(self, field_name))
@@ -73,7 +73,7 @@ module Mongoid
             value = send("#{field_name}")
           end
 
-          if value.nil?
+          if value.nil? || value == ""
             self.send("#{encrypted_field_name}=", nil)
           else
             self.send("#{encrypted_field_name}=", Mongoid::Kms.binary_factory(self.class.encrypt_field(self, field_name, value)))
@@ -160,7 +160,9 @@ module Mongoid
         field encrypted_field_name, type: Mongoid::Kms.bson_class::Binary
 
         define_method(field_name) do
-          instance_variable_get("@#{field_name}") || begin
+          if instance_variable_defined?("@#{field_name}")
+            instance_variable_get("@#{field_name}")
+          else
             raw = send("kms_secure_#{field_name}")
             raw = raw.data if raw.is_a?(Mongoid::Kms.bson_class::Binary)
 
