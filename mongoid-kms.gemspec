@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["chris@mongohq.com"]
   spec.summary       = %q{Easy plugin for Mongoid + AWS KMS for security}
   spec.description   = %q{Need to encrypt your datas?  Use AWS's KMS for data encryption.}
-  spec.homepage      = "https://github.com/compose/mongoid-kms"
+  spec.homepage      = "https://git.compose.io/compose/mongoid-kms"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
