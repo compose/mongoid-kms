@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/compose/mongoid-kms.svg?style=svg)](https://circleci.com/gh/compose/mongoid-kms)
+
 # Mongoid::Kms
 
 Easily encrypt your datas using AWS's KSM.
