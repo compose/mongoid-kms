@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "mongoid", "<5.0.0"
+  spec.add_dependency "mongoid", "<6.0.0"
   spec.add_dependency "activesupport"
   spec.add_dependency "aws-sdk", "> 2.0.9.pre"
 
